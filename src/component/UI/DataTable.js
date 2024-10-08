@@ -1,0 +1,252 @@
+import { useState, useEffect } from 'react';
+import DataTable from 'react-data-table-component';
+import { CircularProgress } from '@mui/material';
+import CheckBox from '@mui/material/Checkbox';
+import TextField from '@mui/material/TextField';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+
+import axios from '../../Axios';
+import hmacSHA256 from '../../helper/crypto.helper';
+
+const calculateColumnWidth = (string, width) => {
+
+    const stringLen = string.length;
+
+    const minMaxWidth = (width === 'min') ? 5 : 100;
+
+    return Math.max(100, (stringLen + minMaxWidth) * 10) + 'px';
+};
+
+const setDefaultColumnProperty = itemObj => {
+
+    return {
+        ...itemObj,
+        reorder: true,
+        wrap: true,
+        minWidth: calculateColumnWidth(itemObj.name, 'min'),
+        maxWidth: calculateColumnWidth(itemObj.name, 'max')
+    };
+};
+
+const DataTableUI = ({ addButton, editButton, deleteButton, url, method, requestData, columns }) => {
+
+    const [isPending, setIsPending] = useState(true);
+
+    const [rows, setRows] = useState([]);
+
+    const [dataColumns, setDataColumns] = useState([]);
+
+    const [selectedRows, setSelectedRows] = useState(null);
+
+    const [rowsPerPage, setRowsPerPage] = useState(1);
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const [onSort, setOnSort] = useState(null);
+
+    const [dataTableFormState, setDataTableFormState] = useState({
+        search: {
+            onChange: e => inputOnChangeHandler(e),
+            id: 'search',
+            name: 'search',
+            required: false,
+            label: 'Search',
+            value: '',
+            disabled: true,
+            fullWidth: false,
+        }
+    });
+
+    const customStyles = {
+        header: {
+            style: {
+                wordWrap: 'break-word'
+            }
+        },
+        headRow: {
+            style: {
+                backgroundColor: '#90a4ae',
+                color: '#263238',
+                borderRadius: '6px 6px 0 0',
+            },
+        },
+        headCells: {
+            style: {
+                fontSize: '.9rem'
+            }
+        },
+        table: {
+            style: {
+                borderRadius: '6px'
+            }
+        }
+    };
+
+    const inputOnChangeHandler = e => {
+
+        let controlName = e.target.name;
+        let controlValue = e.target.value;
+
+        setDataTableFormState(prevState => ({
+            ...prevState,
+            [controlName]: {
+                ...prevState[controlName],
+                value: controlValue
+            }
+        }));
+    };
+
+    const addItemHandler = () => {
+
+        console.log("Add Item");
+    };
+
+    const updateItemHandler = () => {
+
+        console.log("Update Item");
+    };
+
+    const deleteItemHandler = () => {
+
+        console.log("Delete Item");
+    };
+
+    const sortHandler = (column, direction) => {
+
+        setOnSort({
+            column: column.name,
+            direction: direction
+        });
+    };
+
+    const rowsPerPageHandler = (rowsPerPage, page) => {
+
+        setRowsPerPage(rowsPerPage);
+        setCurrentPage(page);
+    };
+
+    useEffect(() => {
+
+        const setDataColumnsHandler = () => {
+
+            let columnsTmp = [];
+
+            if (columns.length > 0) {
+
+                columnsTmp = columns.map(item => {
+
+                    return setDefaultColumnProperty(item);
+                });
+            }
+
+            setDataColumns(columnsTmp);
+        }
+
+        return setDataColumnsHandler();
+    }, [columns]);
+
+    useEffect(() => {
+
+        const getClientList = () => {
+
+            setIsPending(true);
+
+            const data = {
+                ...requestData,
+                search: dataTableFormState.search.value,
+                page: currentPage,
+                rowsPerPage: rowsPerPage,
+                sort: onSort
+            };
+
+            const headers = {
+                'X-HD-Sign': hmacSHA256(data)
+            };
+
+            axios({
+                url: url,
+                method: method,
+                headers: headers,
+                data: data
+            }).then(response => {
+
+                const responseData = response.data.data;
+
+                setRows(responseData);
+            }).catch(error => {
+
+                console.error(error);
+            }).finally(() => {
+
+                setIsPending(false);
+            });
+        };
+
+        return getClientList();
+
+    }, [currentPage, onSort, rowsPerPage]);
+
+    useEffect(() => {
+
+        const enableSearchHandler = () => {
+
+            setDataTableFormState(prevState => ({
+                ...prevState,
+                search: {
+                    ...prevState.search,
+                    disabled: isPending
+                }
+            }));
+        };
+
+        return enableSearchHandler();
+    }, [isPending]);
+
+    return (
+        <>
+            <Grid container>
+                <Grid item xs={12} display="flex" justifyContent="space-between">
+                    <Grid item xs={4}>
+                        <Stack spacing={1} direction="row">
+                            {(addButton) && <Button color='success' onClick={addItemHandler}>Add</Button>}
+                            {(editButton) && <Button color='info' onClick={updateItemHandler}>Update</Button>}
+                            {(deleteButton) && <Button color='warning' onClick={deleteItemHandler}>Delete</Button>}
+                        </Stack>
+                    </Grid>
+                    <Grid item xs={3} display="flex" justifyContent="flex-end">
+                        <TextField
+                            {...dataTableFormState.search}
+                        />
+                    </Grid>
+                </Grid>
+            </Grid>
+            <DataTable
+                columns={dataColumns}
+                data={rows}
+                direction="auto"
+                fixedHeaderScrollHeight="600px"
+                highlightOnHover
+                noContextMenu
+                onSort={sortHandler}
+                pagination
+                onChangePage={setCurrentPage}
+                paginationPerPage={rowsPerPage}
+                paginationRowsPerPageOptions={[1, 5, 10, 15, 20]}
+                onChangeRowsPerPage={rowsPerPageHandler}
+                pointerOnHover
+                responsive
+                onSelectedRowsChange={setSelectedRows}
+                selectableRows
+                selectableRowsComponent={CheckBox}
+                striped
+                progressPending={isPending}
+                progressComponent={<CircularProgress size={40} />}
+                customStyles={customStyles}
+            />
+        </>
+    );
+};
+
+export default DataTableUI;
