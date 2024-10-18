@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DataTable from 'react-data-table-component';
 import { CircularProgress } from '@mui/material';
 import CheckBox from '@mui/material/Checkbox';
@@ -40,11 +40,13 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
     const [selectedRows, setSelectedRows] = useState(null);
 
-    const [rowsPerPage, setRowsPerPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(2);
 
     const [currentPage, setCurrentPage] = useState(1);
 
     const [onSort, setOnSort] = useState(null);
+
+    const [totalRows, setTotalRows] = useState(0);
 
     const [dataTableFormState, setDataTableFormState] = useState({
         search: {
@@ -55,9 +57,11 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
             label: 'Search',
             value: '',
             disabled: true,
-            fullWidth: false,
+            fullWidth: false
         }
     });
+
+    const [searchDebouncedValue, setSearchDebouncedValue] = useState(dataTableFormState.search.value);
 
     const customStyles = {
         header: {
@@ -127,6 +131,10 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
         setCurrentPage(page);
     };
 
+    const selectedRowsHandler = state => {
+        setSelectedRows(state.selectedRows);
+    };
+
     useEffect(() => {
 
         const setDataColumnsHandler = () => {
@@ -155,8 +163,8 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
             const data = {
                 ...requestData,
-                search: dataTableFormState.search.value,
-                page: currentPage,
+                search: searchDebouncedValue,
+                page: currentPage - 1,
                 rowsPerPage: rowsPerPage,
                 sort: onSort
             };
@@ -172,9 +180,11 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 data: data
             }).then(response => {
 
-                const responseData = response.data.data;
+                const responseData = response.data;
 
-                setRows(responseData);
+                setRows(responseData.data);
+
+                setTotalRows(responseData.count);
             }).catch(error => {
 
                 console.error(error);
@@ -186,7 +196,7 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
         return getClientList();
 
-    }, [currentPage, onSort, rowsPerPage]);
+    }, [currentPage, onSort, rowsPerPage, searchDebouncedValue]);
 
     useEffect(() => {
 
@@ -203,6 +213,15 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
         return enableSearchHandler();
     }, [isPending]);
+
+    useEffect(() => {
+
+        const timeoutHandler = setTimeout(() => {
+            setSearchDebouncedValue(dataTableFormState.search.value);
+        }, 800);
+
+        return () => clearTimeout(timeoutHandler);
+    }, [dataTableFormState.search.value]);
 
     return (
         <>
@@ -231,15 +250,19 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 noContextMenu
                 onSort={sortHandler}
                 pagination
+                paginationServer
                 onChangePage={setCurrentPage}
                 paginationPerPage={rowsPerPage}
-                paginationRowsPerPageOptions={[1, 5, 10, 15, 20]}
+                paginationTotalRows={totalRows}
+                paginationRowsPerPageOptions={[2, 5, 10, 15, 20]}
                 onChangeRowsPerPage={rowsPerPageHandler}
                 pointerOnHover
                 responsive
-                onSelectedRowsChange={setSelectedRows}
+                onSelectedRowsChange={selectedRowsHandler}
                 selectableRows
+                selectableRowsHighlight
                 selectableRowsComponent={CheckBox}
+                selectedRows={selectedRows}
                 striped
                 progressPending={isPending}
                 progressComponent={<CircularProgress size={40} />}
