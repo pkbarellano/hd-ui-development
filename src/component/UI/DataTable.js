@@ -38,7 +38,8 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
     const [dataColumns, setDataColumns] = useState([]);
 
-    const [selectedRows, setSelectedRows] = useState(null);
+    const [selectedRowId, setSelectedRowId] = useState(new Set());
+    // const [selectedRows, setSelectedRows] = useState(null);
 
     const [rowsPerPage, setRowsPerPage] = useState(2);
 
@@ -132,8 +133,22 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
     };
 
     const selectedRowsHandler = state => {
-        setSelectedRows(state.selectedRows);
+        const newSelectedRowIds = new Set(selectedRowId);
+
+        state.selectedRows.forEach(row => {
+            if (!newSelectedRowIds.has(row.id)) {
+                newSelectedRowIds.add(row.id);
+            } else {
+                newSelectedRowIds.delete(row.id);
+            }
+        });
+
+        setSelectedRowId(newSelectedRowIds);
     };
+
+    // useEffect(() => {
+    //     console.log(selectedRows);
+    // }, [selectedRows]);
 
     useEffect(() => {
 
@@ -223,6 +238,8 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
         return () => clearTimeout(timeoutHandler);
     }, [dataTableFormState.search.value]);
 
+    const isRowSelected = row => selectedRowId.has(row.id);
+
     return (
         <>
             <Grid container>
@@ -262,7 +279,7 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 selectableRows
                 selectableRowsHighlight
                 selectableRowsComponent={CheckBox}
-                selectedRows={selectedRows}
+                selectedRows={rows.filter(isRowSelected)}
                 striped
                 progressPending={isPending}
                 progressComponent={<CircularProgress size={40} />}
