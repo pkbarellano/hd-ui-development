@@ -38,8 +38,7 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
 
     const [dataColumns, setDataColumns] = useState([]);
 
-    const [selectedRowId, setSelectedRowId] = useState(new Set());
-    // const [selectedRows, setSelectedRows] = useState(null);
+    const [selectedRows, setSelectedRows] = useState(null);
 
     const [rowsPerPage, setRowsPerPage] = useState(2);
 
@@ -132,24 +131,6 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
         setCurrentPage(page);
     };
 
-    const selectedRowsHandler = state => {
-        const newSelectedRowIds = new Set(selectedRowId);
-
-        state.selectedRows.forEach(row => {
-            if (!newSelectedRowIds.has(row.id)) {
-                newSelectedRowIds.add(row.id);
-            } else {
-                newSelectedRowIds.delete(row.id);
-            }
-        });
-
-        setSelectedRowId(newSelectedRowIds);
-    };
-
-    // useEffect(() => {
-    //     console.log(selectedRows);
-    // }, [selectedRows]);
-
     useEffect(() => {
 
         const setDataColumnsHandler = () => {
@@ -238,8 +219,6 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
         return () => clearTimeout(timeoutHandler);
     }, [dataTableFormState.search.value]);
 
-    const isRowSelected = row => selectedRowId.has(row.id);
-
     return (
         <>
             <Grid container>
@@ -267,7 +246,6 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 noContextMenu
                 onSort={sortHandler}
                 pagination
-                paginationServer
                 onChangePage={setCurrentPage}
                 paginationPerPage={rowsPerPage}
                 paginationTotalRows={totalRows}
@@ -275,14 +253,11 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 onChangeRowsPerPage={rowsPerPageHandler}
                 pointerOnHover
                 responsive
-                onSelectedRowsChange={selectedRowsHandler}
+                onSelectedRowsChange={setSelectedRows}
                 selectableRows
                 selectableRowsHighlight
                 selectableRowsComponent={CheckBox}
-                selectedRows={rows.filter(isRowSelected)}
                 striped
-                progressPending={isPending}
-                progressComponent={<CircularProgress size={40} />}
                 customStyles={customStyles}
             />
         </>
