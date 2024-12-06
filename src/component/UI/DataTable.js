@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import DataTable from 'react-data-table-component';
-import { CircularProgress } from '@mui/material';
 import CheckBox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import axios from '../../Axios';
 import hmacSHA256 from '../../helper/crypto.helper';
@@ -30,15 +32,13 @@ const setDefaultColumnProperty = itemObj => {
     };
 };
 
-const DataTableUI = ({ addButton, editButton, deleteButton, url, method, requestData, columns }) => {
+const DataTableUI = ({ addButton, addButtonActionHandler, editButton, editButtonActionHandler, deleteButton, deleteButtonActionHandler, url, method, requestData, columns, setSelectedRows }) => {
 
     const [isPending, setIsPending] = useState(true);
 
     const [rows, setRows] = useState([]);
 
     const [dataColumns, setDataColumns] = useState([]);
-
-    const [selectedRows, setSelectedRows] = useState(null);
 
     const [rowsPerPage, setRowsPerPage] = useState(2);
 
@@ -100,21 +100,6 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 value: controlValue
             }
         }));
-    };
-
-    const addItemHandler = () => {
-
-        console.log("Add Item");
-    };
-
-    const updateItemHandler = () => {
-
-        console.log("Update Item");
-    };
-
-    const deleteItemHandler = () => {
-
-        console.log("Delete Item");
     };
 
     const sortHandler = (column, direction) => {
@@ -225,9 +210,31 @@ const DataTableUI = ({ addButton, editButton, deleteButton, url, method, request
                 <Grid item xs={12} display="flex" justifyContent="space-between">
                     <Grid item xs={4}>
                         <Stack spacing={1} direction="row">
-                            {(addButton) && <Button color='success' onClick={addItemHandler}>Add</Button>}
-                            {(editButton) && <Button color='info' onClick={updateItemHandler}>Update</Button>}
-                            {(deleteButton) && <Button color='warning' onClick={deleteItemHandler}>Delete</Button>}
+                            {(addButton) &&
+                                <Button
+                                    color='primary'
+                                    onClick={addButtonActionHandler}
+                                    startIcon={<AddIcon
+                                    />}
+                                >
+                                    Add
+                                </Button>}
+                            {(editButton) &&
+                                <Button
+                                    color='info'
+                                    onClick={editButtonActionHandler}
+                                    startIcon={<EditIcon />}
+                                >
+                                    Update
+                                </Button>}
+                            {(deleteButton) &&
+                                <Button
+                                    color='warning'
+                                    onClick={deleteButtonActionHandler}
+                                    startIcon={<DeleteIcon />}
+                                >
+                                    Delete
+                                </Button>}
                         </Stack>
                     </Grid>
                     <Grid item xs={3} display="flex" justifyContent="flex-end">

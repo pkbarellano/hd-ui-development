@@ -23,7 +23,8 @@ const SignupForm = () => {
             error: false,
             value: null,
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'select'
         },
         firstName: {
             onChange: e => inputOnChangeHandler(e),
@@ -35,7 +36,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         },
         middleName: {
             onChange: e => inputOnChangeHandler(e),
@@ -47,7 +49,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         },
         lastName: {
             onChange: e => inputOnChangeHandler(e),
@@ -59,7 +62,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         },
         email: {
             onChange: e => inputOnChangeHandler(e),
@@ -71,7 +75,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         },
         username: {
             onChange: e => inputOnChangeHandler(e),
@@ -83,7 +88,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         },
         password: {
             onChange: e => inputOnChangeHandler(e),
@@ -96,7 +102,8 @@ const SignupForm = () => {
             error: false,
             value: '',
             helperText: '',
-            disabled: false
+            disabled: false,
+            textFieldType: 'text'
         }
     });
 
@@ -255,29 +262,15 @@ const SignupForm = () => {
 
         Object.keys(signupFormState).forEach(key => {
 
-            if (key === 'department') {
-
-                setSignupFormState(prevState => ({
-                    ...prevState,
-                    [key]: {
-                        ...prevState[key],
-                        error: false,
-                        helperText: '',
-                        value: null
-                    }
-                }));
-            } else {
-
-                setSignupFormState(prevState => ({
-                    ...prevState,
-                    [key]: {
-                        ...prevState[key],
-                        error: false,
-                        helperText: '',
-                        value: ''
-                    }
-                }));
-            }
+            setSignupFormState(prevState => ({
+                ...prevState,
+                [key]: {
+                    ...prevState[key],
+                    error: false,
+                    helperText: '',
+                    value: (prevState[key].textFieldType === 'select') ? null : ''
+                }
+            }));
         });
     }
 

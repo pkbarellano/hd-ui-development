@@ -52,9 +52,9 @@ const ModalUI = ({ width, bgcolor, open, closeHandler, textColor, title, body, b
                             }}>
                             {title}
                         </Typography>
-                        <Typography sx={{ mt: 2, color: textColor }}>
+                        <Box sx={{ mt: 2, color: textColor }}>
                             {body}
-                        </Typography>
+                        </Box>
                         <Stack
                             direction="row"
                             justifyContent="flex-end"

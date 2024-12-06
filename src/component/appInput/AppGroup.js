@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
-import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
+import {
+    Autocomplete,
+    CircularProgress,
+    TextField
+} from '@mui/material';
 
 import axios from '../../Axios';
-import TextField from '@mui/material/TextField';
 import hmacSHA256 from '../../helper/crypto.helper';
 
-const Department = ({ value, margin, error, required, autoFocus, helperText, onChange, disabled }) => {
+const Group = ({ value, margin, error, required, autoFocus, helperText, onChange, disabled }) => {
+
+    const session = JSON.parse(localStorage.getItem('HD-Sess'));
 
     const [renderState, setRenderState] = useState(false);
 
-    const [departmentState, setDepartmentState] = useState([]);
+    const [groupState, setGroupState] = useState([]);
 
     const [progressState, setProgressState] = useState(false);
 
@@ -18,24 +22,13 @@ const Department = ({ value, margin, error, required, autoFocus, helperText, onC
 
     const [timerDelay, setTimerDelay] = useState(null);
 
-    const getDepartmentDelay = search => {
-
-        if (timerDelay) {
-            clearTimeout(timerDelay);
-            setTimerDelay(null);
-        }
-
-        setTimerDelay(
-            setTimeout(() => getDepartment(search), 800)
-        );
-    };
-
-    const getDepartment = search => {
-
+    const getGroup = search => {
         setProgressState(true);
 
         const data = {
-            search: search
+            search: search,
+            clientType: session.clientType,
+            department: session.department
         };
 
         const headers = {
@@ -43,53 +36,60 @@ const Department = ({ value, margin, error, required, autoFocus, helperText, onC
         };
 
         axios({
-            url: 'department/read',
+            url: 'group/client',
             method: 'POST',
             headers: headers,
             data: data
         }).then(response => {
-
             const data = response.data.data;
 
-            const departments = data.map((el) => {
-                return { label: el.departmentName, value: el.id };
+            const groups = data.map(el => {
+                return {
+                    label: el.groupName,
+                    value: el.id
+                };
             });
 
-            setDepartmentState(departments);
-
+            setGroupState(groups);
         }).catch(error => {
             console.error(error);
-        })
-            .finally(() => {
-                setProgressState(false);
-            });
-    }
+        }).finally(() => {
+            setProgressState(false);
+        });
+    };
+
+    const getGroupDelay = (search) => {
+        if (timerDelay) {
+            clearTimeout(timerDelay);
+            setTimerDelay(null);
+        }
+
+        setTimerDelay(
+            setTimeout(() => getGroup(search), 800)
+        );
+    };
 
     useEffect(() => {
-
         if (renderState === false) {
-
-            getDepartment("");
+            getGroup("");
         }
 
         return setRenderState(true);
     }, [renderState]);
 
     useEffect(() => {
-
         if (valueState !== value) {
             setValueState(value);
         }
-
     }, [value]);
 
     return (
         <Autocomplete
-            id="department"
-            name="department"
+            id="group"
+            name="group"
             autoHighlight
-            options={departmentState}
-            onInputChange={(e, v) => getDepartmentDelay(v)}
+            options={groupState}
+            onInputChange={(e, v) => getGroupDelay(v)}
             isOptionEqualToValue={(option, value) => option.label === value.label}
             getOptionLabel={option => (option) ? option.label : option.label}
             value={valueState}
@@ -99,15 +99,18 @@ const Department = ({ value, margin, error, required, autoFocus, helperText, onC
                     margin={margin}
                     error={error}
                     {...params}
-                    label="Department"
+                    label="Group"
                     required={required}
                     autoFocus={autoFocus}
-                    id='department-options'
+                    id="group-options"
                     InputProps={{
                         ...params.InputProps,
                         endAdornment: (
                             <>
-                                {progressState ? <CircularProgress size={15} /> : null}
+                                {progressState ?
+                                    <CircularProgress
+                                        size={15}
+                                    /> : null}
                                 {params.InputProps.endAdornment}
                             </>
                         )
@@ -117,7 +120,7 @@ const Department = ({ value, margin, error, required, autoFocus, helperText, onC
             )}
             onChange={onChange}
         />
-    );
+    )
 };
 
-export default Department;
+export default Group;

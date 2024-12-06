@@ -58,6 +58,7 @@ const ClientType = ({ value, margin, error, required, autoFocus, helperText, onC
         <AutoComplete
             id="clientType"
             name="clientType"
+            autoHighlight
             options={clientTypeState}
             isOptionEqualToValue={(option, value) => option.label === value.label}
             getOptionLabel={option => (option) ? option.label : option.label}

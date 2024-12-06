@@ -9,12 +9,19 @@ import { teal, deepOrange, cyan } from '@mui/material/colors';
 
 import DataTableUI from '../../../component/UI/DataTable';
 import ComponentHeader from '../../../component/UI/ComponentHeader';
+import ClientForm from './client/ClientForm';
 
 export const Client = () => {
 
     const [requestData, setRequestData] = useState({});
 
     const [renderDataTable, setRenderDataTable] = useState(false);
+
+    const [selectedRows, setSelectedRows] = useState(null);
+
+    const [clientFormModalState, setClientFormModalState] = useState(false);
+
+    const [clientFormTypeState, setClientFormTypeState] = useState('');
 
     const columns = [
         {
@@ -94,6 +101,28 @@ export const Client = () => {
         }
     ];
 
+    const addItemHandler = async () => {
+
+        setClientFormTypeState('add');
+        setClientFormModalState(true);
+    };
+
+    const updateItemHandler = async () => {
+
+        setClientFormTypeState('update');
+        setClientFormModalState(true);
+    };
+
+    const deleteItemHandler = () => {
+
+        console.log("Delete Item");
+    };
+
+    const setSelectedRowsHandler = state => {
+
+        console.log(state.selectedRows);
+    };
+
     useEffect(() => {
 
         const getClientDataHandler = () => {
@@ -113,6 +142,8 @@ export const Client = () => {
 
     }, []);
 
+    useEffect(() => console.log(selectedRows), [selectedRows]);
+
     return (
         <div>
             <Card>
@@ -120,22 +151,34 @@ export const Client = () => {
                 <CardContent>
                     <Stack spacing={1}>
                         <Stack spacing={1} direction='row'>
-
                         </Stack>
                         {
                             renderDataTable && (<DataTableUI
                                 addButton={true}
+                                addButtonActionHandler={addItemHandler}
+                                addActionUrl=''
                                 editButton={true}
+                                editButtonActionHandler={updateItemHandler}
+                                editActionUrl=''
                                 deleteButton={true}
+                                deleteButtonActionHandler={deleteItemHandler}
+                                deleteActionUrl=''
                                 url='user/read'
                                 method='POST'
                                 requestData={requestData}
                                 columns={columns}
+                                setSelectedRows={setSelectedRows}
                             />)
                         }
                     </Stack>
                 </CardContent>
             </Card>
+            <ClientForm
+                formType={clientFormTypeState}
+                clientFormModalState={clientFormModalState}
+                setClientFormModalState={setClientFormModalState}
+                selectedRow={(clientFormTypeState === 'update') ? selectedRows : null}
+            />
         </div>
     );
 };
